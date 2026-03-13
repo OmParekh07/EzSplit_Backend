@@ -1,25 +1,26 @@
 package com.project.EzSplit_Backend.Entity;
 
+
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
-@Data
-@Builder
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class GroupMember {
+@Builder
+public class ExpenseSplit {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private Double amount;
+
     @ManyToOne
-    @JoinColumn(name = "group_id")
-    private Group group;
+    @JoinColumn(name = "expense_id")
+    private Expense expense;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

@@ -1,6 +1,8 @@
 package com.project.EzSplit_Backend.Repository;
 
+import com.project.EzSplit_Backend.Entity.Group;
 import com.project.EzSplit_Backend.Entity.GroupMember;
+import com.project.EzSplit_Backend.Entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -8,5 +10,7 @@ import java.util.List;
 public interface GroupMemberRepository
         extends JpaRepository<GroupMember, Long> {
 
-    List<GroupMember> findByUserId(Long userId);
+
+    List<GroupMember> findByUser(User user);
+    boolean existsByGroupAndUser(Group group, User user);
 }

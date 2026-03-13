@@ -2,7 +2,6 @@ package com.project.EzSplit_Backend.Entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -13,26 +12,24 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "groups")
-public class Group {
+public class Expense {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
-
     private String description;
 
+    private Double amount;
+
     @ManyToOne
-    @JoinColumn(name = "created_by")
-    private User createdBy;
+    @JoinColumn(name = "group_id")
+    private Group group;
+
+    @ManyToOne
+    @JoinColumn(name = "paid_by")
+    private User paidBy;
 
     @CreationTimestamp
-    @Column(updatable = false)
     private LocalDateTime createdAt;
-
-
-    @Column(unique = true)
-    private String inviteCode;
 }
