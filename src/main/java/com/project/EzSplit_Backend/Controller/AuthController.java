@@ -24,8 +24,14 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<SignupResponseDto> signup(@RequestBody SignUpRequestDto signupRequestDto) {
+    public ResponseEntity<String> signup(@RequestBody SignUpRequestDto signupRequestDto) {
         return ResponseEntity.ok(authService.signup(signupRequestDto));
+    }
+
+    @PostMapping("/verify-otp")
+    public SignupResponseDto verifyOtp(@RequestBody SignUpRequestDto request,
+                                       @RequestParam String otp){
+        return authService.verifyOtp(request, otp);
     }
 
 

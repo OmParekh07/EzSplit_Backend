@@ -29,6 +29,7 @@ public class AuthService {
     private final AuthUtil authUtil;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final otpService otpService;
 
 
     public LoginResponseDto login(LoginRequestDto loginRequestDto) {
@@ -47,19 +48,35 @@ public class AuthService {
 
 
     // login controller
-    public SignupResponseDto signup(SignUpRequestDto signupRequestDto) {
+    public String signup(SignUpRequestDto signupRequestDto) {
         User user = userRepository.findByUsername(signupRequestDto.getUsername()).orElse(null);
         if(user != null) throw new IllegalArgumentException("User already exists");
-        userRepository.save(User.builder()
-                .username(signupRequestDto.getUsername())
-                .password(passwordEncoder.encode(signupRequestDto.getPassword()))
-                .providerType(AuthProviderType.EMAIL)
-                .build());
+        otpService.sendOtp(signupRequestDto.getUsername());
 
-        user = userRepository.findByUsername(signupRequestDto.getUsername()).orElseThrow();
-        return new SignupResponseDto(user.getId(), user.getUsername());
+        return "OTP sent to email";
     }
 
+    public SignupResponseDto verifyOtp(SignUpRequestDto signupRequestDto, String otp){
+
+        boolean verified =
+                otpService.verifyOtp(signupRequestDto.getUsername(), otp);
+
+        if(!verified)
+            throw new RuntimeException("Invalid OTP");
+
+        User user = userRepository.save(
+                User.builder()
+                        .username(signupRequestDto.getUsername())
+                        .name(signupRequestDto.getName())
+                        .password(passwordEncoder.encode(signupRequestDto.getPassword()))
+                        .providerType(AuthProviderType.EMAIL)
+                        .build()
+        );
+
+        return new SignupResponseDto(user.getId(), user.getUsername(),user.getName());
+
+
+    }
 
 }
 
