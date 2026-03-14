@@ -5,6 +5,7 @@ import com.project.EzSplit_Backend.Dto.LoginResponseDto;
 import com.project.EzSplit_Backend.Dto.SignUpRequestDto;
 import com.project.EzSplit_Backend.Dto.SignupResponseDto;
 import com.project.EzSplit_Backend.Security.AuthService;
+import com.project.EzSplit_Backend.Security.otpService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,8 @@ public class AuthController {
     private final JavaMailSender mailSender;
     @Autowired
     private final AuthService authService;
+
+    private final otpService otpService;
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginRequestDto) {
@@ -40,14 +43,8 @@ public class AuthController {
     @GetMapping("/test-mail")
     public String testMail(){
 
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo("connect.omparekh@gmail.com");
-        message.setSubject("Test Email");
-        message.setText("Mail working");
-
-        mailSender.send(message);
-
-        return "Mail sent";
+        otpService.sendOtp("connect.omparekh@gmail.com");
+        return "send";
     }
 
 
