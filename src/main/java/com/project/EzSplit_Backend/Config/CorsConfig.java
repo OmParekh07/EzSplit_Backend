@@ -16,7 +16,7 @@ public class CorsConfig {
                 registry.addMapping("/**")
                         .allowedOrigins(
                                 "http://localhost:5173",
-                                "https://your-frontend-domain.vercel.app"
+                                "https://ezsplit-frontend-domain.vercel.app"
                         )
                         .allowedMethods("*")
                         .allowedHeaders("*")
