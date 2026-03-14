@@ -3,8 +3,15 @@
     import com.project.EzSplit_Backend.Dto.CreateGroupRequestDto;
     import com.project.EzSplit_Backend.Dto.CreateGroupResponseDto;
     import com.project.EzSplit_Backend.Dto.GroupResponseDto;
+    import com.project.EzSplit_Backend.Dto.SettlementTransactionDto;
+    import com.project.EzSplit_Backend.Entity.Expense;
+    import com.project.EzSplit_Backend.Entity.ExpenseSplit;
+    import com.project.EzSplit_Backend.Entity.Group;
     import com.project.EzSplit_Backend.Entity.User;
+    import com.project.EzSplit_Backend.Repository.ExpenseRepository;
+    import com.project.EzSplit_Backend.Repository.ExpenseSplitRepository;
     import com.project.EzSplit_Backend.Service.GroupService;
+    import com.project.EzSplit_Backend.Service.SettlementService;
     import lombok.RequiredArgsConstructor;
     import org.springframework.http.ResponseEntity;
     import org.springframework.security.core.Authentication;
@@ -21,6 +28,9 @@
     public class GroupController {
 
         private final GroupService groupService;
+        private final ExpenseRepository expenseRepository;
+        private final ExpenseSplitRepository expenseSplitRepository;
+        private final SettlementService settlementService;
 
         @PostMapping
         public ResponseEntity<CreateGroupResponseDto> createGroup(@RequestBody CreateGroupRequestDto request,
@@ -48,4 +58,23 @@
             return groupService.joinGroup(inviteCode, user.getId());
         }
 
+        @GetMapping("/inviteCode/{id}")
+        public String inviteLink(@PathVariable Long groupId,Authentication authentication){
+            User user = (User) authentication.getPrincipal();
+            return groupService.getInviteCode(groupId);
+        }
+
+        @GetMapping("/groups/{groupId}/settle")
+        public List<SettlementTransactionDto> settleGroup(
+                @PathVariable Long groupId
+        ) {
+
+            List<Expense> expenses =
+                    expenseRepository.findByGroupId(groupId);
+
+            List<ExpenseSplit> splits =
+                    expenseSplitRepository.findByGroupId(groupId);
+
+            return settlementService.generateSettlements(expenses, splits);
+        }
     }

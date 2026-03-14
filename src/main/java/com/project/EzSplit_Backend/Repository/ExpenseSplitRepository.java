@@ -10,4 +10,5 @@ public interface ExpenseSplitRepository extends JpaRepository<ExpenseSplit, Long
 
     List<ExpenseSplit> findByExpense(Expense expense);
 
+    List<ExpenseSplit> findByGroupId(Long groupId);
 }

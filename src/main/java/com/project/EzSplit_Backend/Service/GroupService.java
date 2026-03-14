@@ -143,4 +143,10 @@ public class GroupService {
 
         return "Joined group successfully";
     }
+
+    public String getInviteCode(Long groupId) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Invalid group id"));
+        return group.getInviteCode();
+    }
 }
