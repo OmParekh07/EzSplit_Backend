@@ -5,6 +5,7 @@ import com.project.EzSplit_Backend.Entity.GroupMember;
 import com.project.EzSplit_Backend.Entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Arrays;
 import java.util.List;
 
 public interface GroupMemberRepository
@@ -13,4 +14,6 @@ public interface GroupMemberRepository
 
     List<GroupMember> findByUser(User user);
     boolean existsByGroupAndUser(Group group, User user);
+
+    List<GroupMember> findByGroup(Group group);
 }

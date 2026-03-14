@@ -33,6 +33,7 @@ public class User implements UserDetails {
 
     private String providerId;
 
+    private String upiID;
     @Enumerated(EnumType.STRING)
     private AuthProviderType providerType;
 
