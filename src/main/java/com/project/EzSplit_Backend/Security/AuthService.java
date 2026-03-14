@@ -39,10 +39,10 @@ public class AuthService {
         );
 
         User user = (User) authentication.getPrincipal();
-
+        User user1 = userRepository.findByUsername(user.getUsername()).orElseThrow(() -> new RuntimeException("User not found"));
         String token = authUtil.generateAccessToken(user);
 
-        return new LoginResponseDto(token, user.getId());
+        return new LoginResponseDto(token, user1.getName(),user.getId());
     }
 
 
