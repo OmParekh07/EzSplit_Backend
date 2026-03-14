@@ -1,6 +1,7 @@
 package com.project.EzSplit_Backend.Controller;
 
 import com.project.EzSplit_Backend.Dto.CreatePaymentRequestDto;
+import com.project.EzSplit_Backend.Dto.PaymentResponseDto;
 import com.project.EzSplit_Backend.Entity.Payment;
 import com.project.EzSplit_Backend.Entity.Type.PaymentStatus;
 import com.project.EzSplit_Backend.Repository.PaymentRepository;
@@ -22,26 +23,10 @@ public class PaymentController {
     private PaymentRepository paymentRepository;
 
     @PostMapping("/create")
-    public Map<String, Object> createPayment(
+    public PaymentResponseDto createPayment(
             @RequestBody CreatePaymentRequestDto request
     ) {
-
-        Payment payment = new Payment();
-        payment.setPayerId(request.getPayerId());
-        payment.setReceiverId(request.getReceiverId());
-        payment.setAmount(request.getAmount());
-        payment.setStatus(PaymentStatus.PENDING);
-        payment.setCreatedAt(LocalDateTime.now());
-
-        paymentRepository.save(payment);
-
-        String upiLink = paymentService.generateUpiLink(request.getReceiverUpi(), request.getReceiverName(), request.getAmount());
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("paymentId", payment.getId());
-        response.put("upiLink", upiLink);
-
-        return response;
+        return paymentService.generateUpiLink(request);
     }
 
     @PostMapping("/confirm/{id}")

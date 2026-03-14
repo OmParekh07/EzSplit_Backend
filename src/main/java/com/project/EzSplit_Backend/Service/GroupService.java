@@ -2,18 +2,19 @@ package com.project.EzSplit_Backend.Service;
 
 import com.project.EzSplit_Backend.Dto.CreateGroupRequestDto;
 import com.project.EzSplit_Backend.Dto.CreateGroupResponseDto;
+import com.project.EzSplit_Backend.Dto.EntryResponseDto;
 import com.project.EzSplit_Backend.Dto.GroupResponseDto;
 import com.project.EzSplit_Backend.Entity.Group;
 import com.project.EzSplit_Backend.Entity.GroupMember;
 import com.project.EzSplit_Backend.Entity.User;
-import com.project.EzSplit_Backend.Repository.GroupMemberRepository;
-import com.project.EzSplit_Backend.Repository.GroupRepository;
-import com.project.EzSplit_Backend.Repository.UserRepository;
+import com.project.EzSplit_Backend.Repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +23,8 @@ public class GroupService {
     private final GroupRepository groupRepository;
     private final GroupMemberRepository groupMemberRepository;
     private final UserRepository userRepository;
+    private final ExpenseRepository expenseRepository;
+    private final ExpenseSplitRepository expenseSplitRepository;
 
     public CreateGroupResponseDto createGroup(CreateGroupRequestDto request, Long creatorId){
 
@@ -67,7 +70,6 @@ public class GroupService {
 
 
     public List<GroupResponseDto> getGroups(Long userId){
-
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -75,13 +77,49 @@ public class GroupService {
                 groupMemberRepository.findByUser(user);
 
         return memberships.stream()
-                .map(member -> member.getGroup())
-                .map(group -> GroupResponseDto.builder()
-                        .id(group.getId())
-                        .name(group.getName())
-                        .description(group.getDescription())
-                        .createdAt(group.getCreatedAt())
-                        .build())
+                .map(GroupMember::getGroup)
+                .map(group -> {
+
+                    List<String> members = groupMemberRepository
+                            .findByGroup(group)
+                            .stream()
+                            .map(member -> member.getUser().getId().toString())
+                            .toList();
+                    System.out.println("Groups found: " + memberships.size());
+//                    List<EntryResponseDto> entries = expenseRepository
+//                            .findByGroup(group)
+//                            .stream()
+//                            .map(expense -> {
+//
+//                                Map<Long, Double> splits = expenseSplitRepository
+//                                        .findByExpense(expense)
+//                                        .stream()
+//                                        .collect(Collectors.toMap(
+//                                                s -> s.getUser().getId(),
+//                                                s -> s.getAmount()
+//                                        ));
+//
+//                                return EntryResponseDto.builder()
+//                                        .id(expense.getId())
+//                                        .description(expense.getDescription())
+//                                        .amount(expense.getAmount())
+//                                        .paidBy(expense.getPaidBy().getId())
+//                                        .splitType(expense.getSplitType())
+//                                        .splits(splits)
+//                                        .mode(expense.getMode())
+//                                        .date(expense.getDate().toString())
+//                                        .build();
+//                            })
+//                            .toList();
+                    return GroupResponseDto.builder()
+                            .id(group.getId())
+                            .name(group.getName())
+                            .description(group.getDescription())
+                            .createdAt(group.getCreatedAt())
+                            .members(members)
+                            .entries(List.of())
+                            .build();
+                })
                 .toList();
     }
 

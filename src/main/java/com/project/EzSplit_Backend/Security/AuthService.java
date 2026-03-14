@@ -51,6 +51,7 @@ public class AuthService {
     public String signup(SignUpRequestDto signupRequestDto) {
         User user = userRepository.findByUsername(signupRequestDto.getUsername()).orElse(null);
         if(user != null) throw new IllegalArgumentException("User already exists");
+        if(!isValidUpiFormat(signupRequestDto.getUpiID())) throw new IllegalArgumentException("Upi ID is not valid");
         otpService.sendOtp(signupRequestDto.getUsername());
 
         return "OTP sent to email";
@@ -77,7 +78,10 @@ public class AuthService {
 
 
     }
-
+    public boolean isValidUpiFormat(String upiId) {
+        String regex = "^[a-zA-Z0-9._-]{2,256}@[a-zA-Z]{2,64}$";
+        return upiId.matches(regex);
+    }
 }
 
 

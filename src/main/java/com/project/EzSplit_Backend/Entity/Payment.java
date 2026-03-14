@@ -21,7 +21,6 @@ public class Payment {
     private Double amount;
 
     @Enumerated(EnumType.STRING)
-    @Column(columnDefinition = "ENUM('PENDING','PAID','CANCELLED')")
     private PaymentStatus status;
 
     private LocalDateTime createdAt;
