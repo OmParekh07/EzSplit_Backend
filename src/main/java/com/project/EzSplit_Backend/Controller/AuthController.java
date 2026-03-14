@@ -8,13 +8,16 @@ import com.project.EzSplit_Backend.Security.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.MailSender;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.web.bind.annotation.*;
-@CrossOrigin(origins = "*")
+
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
-
+    private final JavaMailSender mailSender;
     @Autowired
     private final AuthService authService;
 
@@ -32,6 +35,19 @@ public class AuthController {
     public SignupResponseDto verifyOtp(@RequestBody SignUpRequestDto request,
                                        @RequestParam String otp){
         return authService.verifyOtp(request, otp);
+    }
+
+    @GetMapping("/test-mail")
+    public String testMail(){
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo("connect.omparekh@gmail.com");
+        message.setSubject("Test Email");
+        message.setText("Mail working");
+
+        mailSender.send(message);
+
+        return "Mail sent";
     }
 
 

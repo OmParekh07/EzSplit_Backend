@@ -1,6 +1,7 @@
 package com.project.EzSplit_Backend.Service;
 
 import com.project.EzSplit_Backend.Dto.CreateExpenseRequestDto;
+import com.project.EzSplit_Backend.Dto.ExpenseResponseDto;
 import com.project.EzSplit_Backend.Dto.SplitDetailDto;
 import com.project.EzSplit_Backend.Entity.*;
 import com.project.EzSplit_Backend.Entity.Type.SplitType;
@@ -150,5 +151,23 @@ public class ExpenseService {
                             .build()
             );
         }
+    }
+
+    public List<ExpenseResponseDto> getGroupExpenses(Long groupId){
+
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Group not found"));
+
+        List<Expense> expenses = expenseRepository.findByGroup(group);
+
+        return expenses.stream()
+                .map(expense -> ExpenseResponseDto.builder()
+                        .id(expense.getId())
+                        .description(expense.getDescription())
+                        .amount(expense.getAmount())
+                        .paidBy(expense.getPaidBy().getUsername())
+                        .createdAt(expense.getCreatedAt())
+                        .build())
+                .toList();
     }
 }
