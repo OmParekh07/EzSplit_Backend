@@ -4,6 +4,7 @@ import com.project.EzSplit_Backend.Dto.CreateExpenseRequestDto;
 import com.project.EzSplit_Backend.Dto.ExpenseResponseDto;
 import com.project.EzSplit_Backend.Dto.SplitDetailDto;
 import com.project.EzSplit_Backend.Entity.*;
+import com.project.EzSplit_Backend.Entity.Type.PaymentStatus;
 import com.project.EzSplit_Backend.Entity.Type.SplitType;
 import com.project.EzSplit_Backend.Repository.*;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,8 @@ public class ExpenseService {
                 Expense.builder()
                         .description(request.getDescription())
                         .amount(request.getAmount())
+                        .splitType(request.getSplitType())
+                        .status(PaymentStatus.PENDING)
                         .group(group)
                         .paidBy(payer)
                         .build()
@@ -165,6 +168,8 @@ public class ExpenseService {
                         .id(expense.getId())
                         .description(expense.getDescription())
                         .amount(expense.getAmount())
+                        .status(expense.getStatus())
+                        .splitType(expense.getSplitType())
                         .paidBy(expense.getPaidBy().getUsername())
                         .createdAt(expense.getCreatedAt())
                         .build())

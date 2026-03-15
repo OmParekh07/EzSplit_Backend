@@ -1,4 +1,6 @@
 package com.project.EzSplit_Backend.Dto;
+import com.project.EzSplit_Backend.Entity.Type.PaymentStatus;
+import com.project.EzSplit_Backend.Entity.Type.SplitType;
 import lombok.Builder;
 import lombok.Data;
 
@@ -15,6 +17,7 @@ public class ExpenseResponseDto {
     private Double amount;
 
     private String paidBy;
-
+    private PaymentStatus status;
+    private SplitType splitType;
     private LocalDateTime createdAt;
 }

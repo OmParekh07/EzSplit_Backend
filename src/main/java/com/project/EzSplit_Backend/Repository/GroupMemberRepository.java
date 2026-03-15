@@ -16,4 +16,7 @@ public interface GroupMemberRepository
     boolean existsByGroupAndUser(Group group, User user);
 
     List<GroupMember> findByGroup(Group group);
+
+    int countByGroup(Group group);
+
 }

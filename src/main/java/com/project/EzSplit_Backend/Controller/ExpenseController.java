@@ -23,10 +23,6 @@ public class ExpenseController {
         return expenseService.createExpense(request, user.getId());
     }
 
-    @GetMapping("/{groupId}/expenses")
-    public List<ExpenseResponseDto> getGroupExpenses(@PathVariable Long groupId){
 
-        return expenseService.getGroupExpenses(groupId);
-    }
 
 }

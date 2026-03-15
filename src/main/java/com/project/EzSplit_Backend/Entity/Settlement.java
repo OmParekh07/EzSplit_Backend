@@ -1,41 +1,34 @@
 package com.project.EzSplit_Backend.Entity;
 
 import com.project.EzSplit_Backend.Entity.Type.PaymentStatus;
-import com.project.EzSplit_Backend.Entity.Type.SplitType;
+import jakarta.persistence.Entity;
+
+
+
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
-@Entity
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
-public class Expense {
+@Entity
+public class Settlement {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String description;
-
-    private Double amount;
-
-    @Enumerated(EnumType.STRING)
-    private SplitType splitType;
     @ManyToOne
-    @JoinColumn(name = "group_id")
+    @JoinColumn(name = "for_group_id")
     private Group group;
-
-    @ManyToOne
-    @JoinColumn(name = "paid_by")
-    private User paidBy;
 
     @Enumerated(EnumType.STRING)
     private PaymentStatus status = PaymentStatus.PENDING;
-    @CreationTimestamp
+
     private LocalDateTime createdAt;
+
 }

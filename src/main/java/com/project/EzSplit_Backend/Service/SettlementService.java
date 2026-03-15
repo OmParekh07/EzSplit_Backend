@@ -1,13 +1,26 @@
 package com.project.EzSplit_Backend.Service;
 
+import com.project.EzSplit_Backend.Dto.PaymentViewDto;
+import com.project.EzSplit_Backend.Dto.SettlementListDto;
 import com.project.EzSplit_Backend.Dto.SettlementTransactionDto;
-import com.project.EzSplit_Backend.Entity.Expense;
-import com.project.EzSplit_Backend.Entity.ExpenseSplit;
+import com.project.EzSplit_Backend.Entity.*;
+import com.project.EzSplit_Backend.Entity.Type.PaymentStatus;
+import com.project.EzSplit_Backend.Repository.*;
+import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
-
+@Service
+@AllArgsConstructor
 public class SettlementService {
-
+    private final ExpenseRepository expenseRepository;
+    private final ExpenseSplitRepository expenseSplitRepository;
+    private final GroupRepository groupRepository;
+    private final PaymentRepository paymentRepository;
+    private final UserRepository userRepository;
+    private final SettlementRepository settlementRepository;
     // STEP 1: Calculate Net Balances
     public Map<Long, Double> calculateNetBalances(
             List<Expense> expenses,
@@ -128,17 +141,98 @@ public class SettlementService {
     }
 
     // MAIN METHOD USED BY CONTROLLER
-    public List<SettlementTransactionDto> generateSettlements(
-            List<Expense> expenses,
-            List<ExpenseSplit> splits
-    ) {
+    @Transactional
+    public List<SettlementTransactionDto> generateSettlements(long groupId) {
+
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Group not found"));
+        List<Expense> grpExpenses =
+                expenseRepository.findByGroupIdAndStatus(groupId,PaymentStatus.PENDING);
+        if(grpExpenses.isEmpty())
+            return Collections.emptyList();
+        System.out.println("Expenses size: " + grpExpenses.size());
+
+
+        List<ExpenseSplit> grpSplits =
+                expenseSplitRepository.findByExpenseIn(grpExpenses);
+
+        System.out.println("Splits size: " + grpSplits.size());
+
+        Settlement settlement = Settlement.builder()
+                .group(group)
+                .createdAt(LocalDateTime.now())
+                .status(PaymentStatus.PENDING)
+                .build();
+
+        settlementRepository.save(settlement);
+
+
 
         Map<Long, Double> balances =
-                calculateNetBalances(expenses, splits);
+                calculateNetBalances(grpExpenses, grpSplits);
+
+        System.out.println("Balances: " + balances);
 
         removeSettled(balances);
+        System.out.println("Balances after cleanup: " + balances);
+        List<SettlementTransactionDto> transactions =
+                settleDebts(balances);
 
-        return settleDebts(balances);
+        // CREATE PAYMENTS HERE
+        createPayments(settlement, transactions);
+
+        for(Expense e: grpExpenses){
+            e.setStatus(PaymentStatus.SETTLED);
+        }
+        expenseRepository.saveAll(grpExpenses);
+        return transactions;
     }
+
+    @Transactional
+    public void createPayments(
+            Settlement settlement,
+            List<SettlementTransactionDto> transactions
+    ) {
+
+        List<Payment> payments = new ArrayList<>();
+
+        for (SettlementTransactionDto txn : transactions) {
+
+            User payer = userRepository.findById(txn.getFromUserId())
+                    .orElseThrow();
+
+            User receiver = userRepository.findById(txn.getToUserId())
+                    .orElseThrow();
+
+            Payment payment = Payment.builder()
+                    .payer(payer)
+                    .receiver(receiver)
+                    .settlement(settlement)
+                    .amount(txn.getAmount())
+                    .status(PaymentStatus.PENDING)
+                    .createdAt(LocalDateTime.now())
+                    .paidAt(null)
+                    .build();
+
+            payments.add(payment);
+        }
+
+        paymentRepository.saveAll(payments);
+    }
+    public List<SettlementListDto> getGroupSettlements(Long groupId){
+
+        List<Settlement> settlements =
+                settlementRepository.findByGroup_IdOrderByCreatedAtDesc(groupId);
+        System.out.println("Settlements size: " + settlements.size());
+        return settlements.stream()
+                .map(s -> new SettlementListDto(
+                        s.getId(),
+                        s.getCreatedAt(),
+                        s.getStatus()
+                ))
+                .toList();
+    }
+
+
 
 }

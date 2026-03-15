@@ -1,22 +1,33 @@
 package com.project.EzSplit_Backend.Entity;
 
-
 import com.project.EzSplit_Backend.Entity.Type.PaymentStatus;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
+import org.hibernate.annotations.Fetch;
 
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Payment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long payerId;
-    private Long receiverId;
+    // who paid
+    @ManyToOne
+    @JoinColumn(name = "payer_id")
+    private User payer;
+
+    // who received
+    @ManyToOne
+    @JoinColumn(name = "receiver_id")
+    private User receiver;
 
     private Double amount;
 
@@ -24,6 +35,8 @@ public class Payment {
     private PaymentStatus status;
 
     private LocalDateTime createdAt;
-
+    private LocalDateTime paidAt;
+    @ManyToOne
+    @JoinColumn(name = "settlement_id")
+    private Settlement settlement;
 }
-

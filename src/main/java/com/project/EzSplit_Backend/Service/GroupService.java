@@ -1,9 +1,6 @@
 package com.project.EzSplit_Backend.Service;
 
-import com.project.EzSplit_Backend.Dto.CreateGroupRequestDto;
-import com.project.EzSplit_Backend.Dto.CreateGroupResponseDto;
-import com.project.EzSplit_Backend.Dto.EntryResponseDto;
-import com.project.EzSplit_Backend.Dto.GroupResponseDto;
+import com.project.EzSplit_Backend.Dto.*;
 import com.project.EzSplit_Backend.Entity.Group;
 import com.project.EzSplit_Backend.Entity.GroupMember;
 import com.project.EzSplit_Backend.Entity.User;
@@ -69,92 +66,35 @@ public class GroupService {
     }
 
 
-//    public List<GroupResponseDto> getGroups(Long userId){
-//        User user = userRepository.findById(userId)
-//                .orElseThrow(() -> new RuntimeException("User not found"));
-//
-//        List<GroupMember> memberships =
-//                groupMemberRepository.findByUser(user);
-//
-//        return memberships.stream()
-//                .map(GroupMember::getGroup)
-//                .map(group -> {
-//
-//                    List<String> members = groupMemberRepository
-//                            .findByGroup(group)
-//                            .stream()
-//                            .map(member -> member.getUser().getName())
-//                            .toList();
-//                    System.out.println("Groups found: " + memberships.size());
-////                    List<EntryResponseDto> entries = expenseRepository
-////                            .findByGroup(group)
-////                            .stream()
-////                            .map(expense -> {
-////
-////                                Map<Long, Double> splits = expenseSplitRepository
-////                                        .findByExpense(expense)
-////                                        .stream()
-////                                        .collect(Collectors.toMap(
-////                                                s -> s.getUser().getId(),
-////                                                s -> s.getAmount()
-////                                        ));
-////
-////                                return EntryResponseDto.builder()
-////                                        .id(expense.getId())
-////                                        .description(expense.getDescription())
-////                                        .amount(expense.getAmount())
-////                                        .paidBy(expense.getPaidBy().getId())
-////                                        .splitType(expense.getSplitType())
-////                                        .splits(splits)
-////                                        .mode(expense.getMode())
-////                                        .date(expense.getDate().toString())
-////                                        .build();
-////                            })
-////                            .toList();
-//                    return GroupResponseDto.builder()
-//                            .id(group.getId())
-//                            .name(group.getName())
-//                            .description(group.getDescription())
-//                            .createdAt(group.getCreatedAt())
-//                            .members(members)
-//                            .entries(List.of())
-//                            .build();
-//                })
-//                .toList();
-//    }
 
 
-public List<GroupResponseDto> getGroups(Long userId){
+    public List<GroupSummaryDto> getGroups(Long userId){
 
-    User user = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("User not found"));
+        List<Group> groups = groupRepository.findGroupsByUserId(userId);
 
-    List<GroupMember> memberships = groupMemberRepository.findByUser(user);
+        return groups.stream().map(group -> {
 
-    System.out.println("Groups found: " + memberships.size());
+            int membersCount = groupMemberRepository.countByGroup(group);
 
-    return memberships.stream()
-            .map(GroupMember::getGroup)
-            .map(group -> {
+            int totalExpenses = expenseRepository.countByGroup(group);
 
-                List<String> members = groupMemberRepository
-                        .findByGroup(group)
-                        .stream()
-                        .map(member -> member.getUser().getName())
-                        .toList();
+            Double totalSpent = expenseRepository.sumAmountByGroup(group);
 
-                return GroupResponseDto.builder()
-                        .id(group.getId())
-                        .name(group.getName())
-                        .description(group.getDescription())
-                        .createdAt(group.getCreatedAt())
-                        .members(members)
-                        .entries(List.of())
-                        .build();
-            })
-            .toList();
-}
-    public String joinGroup(String inviteCode, Long userId){
+            if(totalSpent == null) totalSpent = 0.0;
+
+            return new GroupSummaryDto(
+                    group.getId(),
+                    group.getName(),
+                    group.getDescription(),
+                    membersCount,
+                    totalExpenses,
+                    totalSpent
+            );
+
+        }).toList();
+    }
+
+    public JoinGroupResponseDto joinGroup(String inviteCode, Long userId){
 
         Group group = groupRepository.findByInviteCode(inviteCode)
                 .orElseThrow(() -> new RuntimeException("Invalid invite code"));
@@ -162,8 +102,14 @@ public List<GroupResponseDto> getGroups(Long userId){
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if(groupMemberRepository.existsByGroupAndUser(group, user))
-            return "Already a member";
+        if(groupMemberRepository.existsByGroupAndUser(group, user)){
+            return new JoinGroupResponseDto(
+                    group.getId(),
+                    group.getName(),
+                    false,
+                    "Already a member"
+            );
+        }
 
         groupMemberRepository.save(
                 GroupMember.builder()
@@ -172,7 +118,45 @@ public List<GroupResponseDto> getGroups(Long userId){
                         .build()
         );
 
-        return "Joined group successfully";
+        return new JoinGroupResponseDto(
+                group.getId(),
+                group.getName(),
+                true,
+                "Successfully joined group"
+        );
+    }
+
+    public String getInviteCode(Long groupId) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Invalid group id"));
+        return group.getInviteCode();
+    }
+
+    public GroupDetailDto getGroupDetails(Long groupId) {
+
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Group not found"));
+
+        List<GroupMember> members =
+                groupMemberRepository.findByGroup(group);
+
+        List<GroupMemberDto> memberDtos =
+                members.stream()
+                        .map(gm -> new GroupMemberDto(
+                                gm.getUser().getId(),
+                                gm.getUser().getName(),
+                                gm.getUser().getUsername()
+                        ))
+                        .toList();
+
+        return new GroupDetailDto(
+                group.getId(),
+                group.getName(),
+                group.getDescription(),
+                group.getInviteCode(),
+                memberDtos.size(),
+                memberDtos
+        );
     }
 
 
