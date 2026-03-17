@@ -28,6 +28,7 @@ public class User implements UserDetails {
     @JoinColumn(unique = true, nullable = false)
     private String username;
 
+    @Column(nullable = false)
     private String name;
     private String password;
 
