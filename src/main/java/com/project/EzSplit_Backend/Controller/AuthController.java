@@ -40,6 +40,8 @@ public class AuthController {
         return authService.verifyOtp(request, otp);
     }
 
+
+
     @GetMapping("/test-mail")
     public String testMail(){
 

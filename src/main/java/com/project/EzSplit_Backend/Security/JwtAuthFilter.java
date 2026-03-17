@@ -23,7 +23,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final UserRepository userRepository;
     private final AuthUtil authUtil;
-
+    private final SupabaseJwtValidator supabaseJwtValidator; // add this
     private final HandlerExceptionResolver handlerExceptionResolver;
 
     @Override
@@ -37,15 +37,22 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 return;
             }
 
-            String token =requestTokenHeader.substring(7);
-            String username = authUtil.getUsernameFromToken(token);
+            String token = requestTokenHeader.substring(7);
 
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                User user = userRepository.findByUsername(username).orElseThrow();
-                UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken
-                        = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+            if (authUtil.isOwnToken(token)) {
+                // ✅ Your existing logic — completely unchanged
+                String username = authUtil.getUsernameFromToken(token);
+                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    User user = userRepository.findByUsername(username).orElseThrow();
+                    UsernamePasswordAuthenticationToken auth =
+                            new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                }
+            } else {
+                // 🆕 Supabase token (Google OAuth user)
+                supabaseJwtValidator.validate(token);
             }
+
             filterChain.doFilter(request, response);
         } catch (Exception ex) {
             handlerExceptionResolver.resolveException(request, response, null, ex);

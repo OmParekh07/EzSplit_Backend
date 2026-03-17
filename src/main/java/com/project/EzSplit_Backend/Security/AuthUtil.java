@@ -52,6 +52,22 @@ public class AuthUtil {
         };
     }
 
+    // Add this to your existing JwtUtil.java
+    public boolean isOwnToken(String token) {
+        try {
+            // Your tokens have "issuer" set to your app
+            // Supabase tokens have issuer like "https://<ref>.supabase.co/auth/v1"
+            Claims claims = Jwts.parser()
+                    .verifyWith(getSecretKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+            return true; // if your key can parse it, it's your token
+        } catch (Exception e) {
+            return false; // parsing failed = it's a Supabase token
+        }
+    }
+
 
 //    public String determineProviderIdFromOAuth2User(OAuth2User oAuth2User, String registrationId) {
 //        String providerId = switch (registrationId.toLowerCase()) {
