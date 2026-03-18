@@ -216,7 +216,17 @@ public class SettlementService {
                     .build();
 
             payments.add(payment);
+            // 🔔 Notification for payer
+            notificationService.createNotification(
+                    payer,
+                    "You need to pay " +
+                            receiver.getUsername() +
+                            " ₹" + txn.getAmount() +
+                            " to settle group expenses"
+            );
         }
+
+
 
         paymentRepository.saveAll(payments);
     }

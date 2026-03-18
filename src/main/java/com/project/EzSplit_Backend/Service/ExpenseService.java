@@ -20,8 +20,14 @@ public class ExpenseService {
     private final ExpenseSplitRepository expenseSplitRepository;
     private final GroupRepository groupRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     public String createExpense(CreateExpenseRequestDto request, Long paidByUserId){
+        List<User> involvedUsers = request.getSplits().stream()
+                .map(split -> userRepository.findByUsername(split.getEmail())
+                        .orElseThrow(() -> new RuntimeException("User not found: " + split.getEmail())))
+                .toList();
+
 
         // 1️⃣ Find group
         Group group = groupRepository.findById(request.getGroupId())
@@ -52,8 +58,28 @@ public class ExpenseService {
 
             case PERCENTAGE -> handlePercentageSplit(request, expense);
         }
-
+        sendExpenseNotifications(expense, involvedUsers, payer);
         return "Expense created successfully";
+    }
+
+    private void sendExpenseNotifications(Expense expense,
+                                          List<User> involvedUsers,
+                                          User payer){
+
+        String message =
+                payer.getUsername() +
+                        " added expense \"" +
+                        expense.getDescription() +
+                        "\" ₹" +
+                        expense.getAmount();
+
+        for(User user : involvedUsers){
+
+            if(!user.getId().equals(payer.getId())){
+
+                notificationService.createNotification(user, message);
+            }
+        }
     }
 
 
