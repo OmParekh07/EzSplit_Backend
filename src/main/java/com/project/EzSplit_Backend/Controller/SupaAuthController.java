@@ -1,6 +1,6 @@
 package com.project.EzSplit_Backend.Controller;
 
-import com.project.EzSplit_Backend.Entity.AuthUser;
+
 import com.project.EzSplit_Backend.Entity.User;
 import com.project.EzSplit_Backend.Repository.UserRepository;
 import lombok.AllArgsConstructor;

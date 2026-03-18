@@ -16,4 +16,11 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
     List<Group> findGroupsByUserId(Long userId);
     List<Group> findByIdIn(List<Long> groupIds);
     Optional<Group> findByInviteCode(String inviteCode);
+
+    @Query(value = """
+SELECT COUNT(*)
+FROM group_member gm
+WHERE gm.user_id = :userId
+""", nativeQuery = true)
+    int countGroupsByUser(Long userId);
 }

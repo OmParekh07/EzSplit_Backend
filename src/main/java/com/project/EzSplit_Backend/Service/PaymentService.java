@@ -29,6 +29,7 @@ public class PaymentService {
     private UserRepository userRepository;
     private final PaymentRepository paymentRepository;
     private final SettlementRepository settlementRepository;
+    private final NotificationService notificationService;
     public String generateUpiLink(Payment payment) {
 
         User receiver = payment.getReceiver();
@@ -44,26 +45,36 @@ public class PaymentService {
                 "&tn=EzSplitPayment";
     }
 
-    public List<PaymentViewDto> getSettlementPayments(Long settlementId){
+    public List<PaymentViewDto> getSettlementPayments(Long settlementId,Long currentUserId) {
         System.out.println("Inside getSettlementPayments, settlementId: " + settlementId);
 
         List<Payment> payments = paymentRepository.findBySettlement_Id(settlementId);
         System.out.println("Payments size: " + payments.size());
-       List<PaymentViewDto> result = payments.stream()
-                .map(p -> PaymentViewDto.builder()
-                        .id(p.getId())
-                        .payerName(p.getPayer().getName())
-                        .receiverName(p.getReceiver().getName())
-                        .payerId(p.getPayer().getId())
-                        .receiverId(p.getReceiver().getId())
-                        .amount(p.getAmount())
-                        .status(p.getStatus())
-                        .upiLink(generateUpiLink(p))
-                        .build()
-                )
+        return payments.stream()
+                .map(p -> {
+
+                    boolean canPay =
+                            p.getPayer().getId().equals(currentUserId)
+                                    && p.getStatus() == PaymentStatus.PENDING;
+
+                    boolean canConfirm =
+                            p.getReceiver().getId().equals(currentUserId)
+                                    && p.getStatus() == PaymentStatus.PAID;
+
+                    return PaymentViewDto.builder()
+                            .id(p.getId())
+                            .payerName(p.getPayer().getName())
+                            .receiverName(p.getReceiver().getName())
+                            .payerId(p.getPayer().getId())
+                            .receiverId(p.getReceiver().getId())
+                            .amount(p.getAmount())
+                            .status(p.getStatus())
+                            .upiLink(generateUpiLink(p))
+                            .canPay(canPay)
+                            .canConfirm(canConfirm)
+                            .build();
+                })
                 .toList();
-        System.out.println("Generated PaymentViewDto list, size: " + result.size());
-       return result;
     }
     @Transactional
     public void markPaymentPaid(Long paymentId, Long currentUserId) {
@@ -80,7 +91,16 @@ public class PaymentService {
         System.out.println("Marking payment as PAID, paymentId: " + paymentId);
         paymentRepository.save(payment);
         paymentRepository.flush();
-        // notify receiver later
+        payment.setStatus(PaymentStatus.PAID);
+        payment.setPaidAt(LocalDateTime.now());
+
+        paymentRepository.save(payment);
+
+        notificationService.createNotification(
+                payment.getReceiver(),
+                payment.getPayer().getName() + " marked payment as paid ₹" + payment.getAmount()
+        );
+
     }
 
     @Transactional
@@ -96,7 +116,10 @@ public class PaymentService {
         payment.setStatus(PaymentStatus.CONFIRMED);
 
         paymentRepository.save(payment);
-
+        notificationService.createNotification(
+                payment.getPayer(),
+                payment.getReceiver().getName() + " confirmed your payment ₹" + payment.getAmount()
+        );
         checkSettlementCompletion(payment.getSettlement());
     }
 

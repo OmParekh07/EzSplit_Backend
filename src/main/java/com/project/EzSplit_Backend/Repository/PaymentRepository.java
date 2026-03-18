@@ -13,4 +13,17 @@ import java.util.List;
 public interface PaymentRepository extends JpaRepository<Payment,Long> {
     List<Payment> findBySettlement_Id(Long settlementId);
 
+    @Query("""
+    SELECT SUM(p.amount)
+    FROM Payment p
+    WHERE p.receiver.id = :userId
+    """)
+    Double sumYouOwe(Long userId);
+
+    @Query("""
+    SELECT SUM(p.amount)
+    FROM Payment p
+    WHERE p.payer.id = :userId
+    """)
+    Double sumOwedToYou(Long userId);
 }

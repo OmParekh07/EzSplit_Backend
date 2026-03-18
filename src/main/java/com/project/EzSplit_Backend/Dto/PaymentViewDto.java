@@ -18,5 +18,7 @@ public class PaymentViewDto {
     private Double amount;
     private PaymentStatus status;
     private String upiLink;
+    private boolean canPay;
+    private boolean canConfirm;
 
 }

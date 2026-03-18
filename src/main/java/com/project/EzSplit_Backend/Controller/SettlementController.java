@@ -4,6 +4,7 @@ import com.project.EzSplit_Backend.Dto.PaymentViewDto;
 import com.project.EzSplit_Backend.Dto.SettlementTransactionDto;
 import com.project.EzSplit_Backend.Entity.Payment;
 import com.project.EzSplit_Backend.Entity.Settlement;
+import com.project.EzSplit_Backend.Entity.User;
 import com.project.EzSplit_Backend.Repository.PaymentRepository;
 import com.project.EzSplit_Backend.Repository.SettlementRepository;
 import com.project.EzSplit_Backend.Service.PaymentService;
@@ -11,6 +12,8 @@ import com.project.EzSplit_Backend.Service.SettlementService;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,9 +33,10 @@ public class SettlementController {
         return service.generateSettlements(groupId);
     }
     @GetMapping("/settlement/{settlementId}/payments")
-    public List<PaymentViewDto> getPaymentsOfSettlement(@PathVariable("settlementId") Long settlementId) {
+    public List<PaymentViewDto> getPaymentsOfSettlement(@PathVariable("settlementId") Long settlementId, Authentication authentication) {
         System.out.println("Fetching payments for settlement ID: " + settlementId);
-        return paymentService.getSettlementPayments(settlementId);
+        User user = (User) authentication.getPrincipal();
+        return paymentService.getSettlementPayments(settlementId,user.getId());
     }
 
     @GetMapping("/debug/payments")

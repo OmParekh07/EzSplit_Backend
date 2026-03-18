@@ -22,4 +22,14 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     Double sumAmountByGroup(Group group);
 
     List<Expense> findByGroupAndStatus(Group group, PaymentStatus pending);
+
+    @Query(value = """
+SELECT e.*
+FROM expense e
+JOIN group_member gm ON e.group_id = gm.group_id
+WHERE gm.user_id = :userId
+ORDER BY e.created_at DESC
+LIMIT 5
+""", nativeQuery = true)
+    List<Expense> findRecentExpenses(Long userId);
 }

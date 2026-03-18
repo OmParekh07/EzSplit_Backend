@@ -1,6 +1,5 @@
 package com.project.EzSplit_Backend.Security;
 
-import com.project.EzSplit_Backend.Entity.AuthUser;
 import com.project.EzSplit_Backend.Entity.Type.AuthProviderType;
 import com.project.EzSplit_Backend.Entity.User;
 import com.project.EzSplit_Backend.Repository.UserRepository;

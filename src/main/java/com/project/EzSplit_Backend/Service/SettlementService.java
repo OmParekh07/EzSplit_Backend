@@ -21,6 +21,7 @@ public class SettlementService {
     private final PaymentRepository paymentRepository;
     private final UserRepository userRepository;
     private final SettlementRepository settlementRepository;
+    private  final  NotificationService notificationService;
     // STEP 1: Calculate Net Balances
     public Map<Long, Double> calculateNetBalances(
             List<Expense> expenses,
