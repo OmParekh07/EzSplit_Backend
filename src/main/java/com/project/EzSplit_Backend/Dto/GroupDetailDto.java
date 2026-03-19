@@ -18,7 +18,7 @@ public class GroupDetailDto {
     private String name;
     private String description;
     private String inviteCode;
-
+    private String creatorName;
     private int membersCount;
 
     private List<GroupMemberDto> members;

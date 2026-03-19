@@ -7,6 +7,8 @@ import com.project.EzSplit_Backend.Entity.*;
 import com.project.EzSplit_Backend.Entity.Type.PaymentStatus;
 import com.project.EzSplit_Backend.Entity.Type.SplitType;
 import com.project.EzSplit_Backend.Repository.*;
+import jakarta.persistence.Table;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -200,5 +202,18 @@ public class ExpenseService {
                         .createdAt(expense.getCreatedAt())
                         .build())
                 .toList();
+    }
+    @Transactional
+    public String deleteExpense(Long expenseId, Long id) {
+        Expense expense = expenseRepository.findById(expenseId)
+                .orElseThrow(() -> new RuntimeException("Expense not found"));
+        if(expense.getPaidBy().getId().equals(id) && expense.getStatus()==PaymentStatus.PENDING){
+            expenseSplitRepository.deleteByExpense(expense);
+            expenseRepository.delete(expense);
+            return "Expense deleted successfully";
+        } else {
+            throw new RuntimeException("Only the user who created the expense can delete it or settled expenses cannot be deleted");
+        }
+
     }
 }

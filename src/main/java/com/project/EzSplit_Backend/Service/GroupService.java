@@ -5,6 +5,7 @@ import com.project.EzSplit_Backend.Entity.Group;
 import com.project.EzSplit_Backend.Entity.GroupMember;
 import com.project.EzSplit_Backend.Entity.User;
 import com.project.EzSplit_Backend.Repository.*;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +23,8 @@ public class GroupService {
     private final UserRepository userRepository;
     private final ExpenseRepository expenseRepository;
     private final ExpenseSplitRepository expenseSplitRepository;
+    private final SettlementRepository settlementRepository;
+    private final PaymentRepository paymentRepository;
 
     public CreateGroupResponseDto createGroup(CreateGroupRequestDto request, Long creatorId){
 
@@ -154,12 +157,52 @@ public class GroupService {
                 group.getName(),
                 group.getDescription(),
                 group.getInviteCode(),
+                group.getCreatedBy().getName(),
                 memberDtos.size(),
                 memberDtos
         );
     }
 
+    @Transactional
+    public String deleteGroup(Long groupId, Long id) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Group not found"));
+
+        if(!group.getCreatedBy().getId().equals(id)){
+            throw new RuntimeException("Only group creator can delete the group");
+        }
+
+        // delete expense splits
+        List<Long> expenseIds = expenseRepository.findByGroup(group)
+                .stream()
+                .map(e -> e.getId())
+                .toList();
+
+
+        //delete payments
+
+
+        List<Long> settlementIds = settlementRepository.findByGroup(group)
+                .stream()
+                .map(s -> s.getId())
+                .toList();
+        paymentRepository.deleteBySettlementIdIn(settlementIds);
+        //delete settlements
+        settlementRepository.deleteByGroup(group);
+
+        //remove splits
+        expenseSplitRepository.deleteByExpenseIdIn(expenseIds);
+        // delete expenses
+        expenseRepository.deleteByGroup(group);
+
+        // delete group members
+        groupMemberRepository.deleteByGroup(group);
+
+        // delete group
+        groupRepository.delete(group);
 
 
 
+        return "Group deleted successfully";
+    }
 }

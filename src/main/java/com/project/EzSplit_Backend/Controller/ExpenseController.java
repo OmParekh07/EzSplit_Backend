@@ -23,6 +23,13 @@ public class ExpenseController {
         return expenseService.createExpense(request, user.getId());
     }
 
+    @DeleteMapping("/expenses/{expenseId}")
+    public String deleteExpense(@PathVariable Long expenseId, Authentication authentication) {
+        User user = (User) authentication.getPrincipal();
+
+        return expenseService.deleteExpense(expenseId, user.getId());
+    }
+
 
 
 }

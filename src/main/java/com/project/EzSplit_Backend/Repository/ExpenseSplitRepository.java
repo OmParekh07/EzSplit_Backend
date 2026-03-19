@@ -11,4 +11,8 @@ public interface ExpenseSplitRepository extends JpaRepository<ExpenseSplit, Long
     List<ExpenseSplit> findByExpense(Expense expense);
 
     List<ExpenseSplit> findByExpenseIn(List<Expense> grpExpenses);
+
+    void deleteByExpenseIdIn(List<Long> expenseIds);
+
+    void deleteByExpense(Expense expense);
 }

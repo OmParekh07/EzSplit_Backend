@@ -17,7 +17,8 @@ public class CorsConfig {
                         .allowedOrigins(
                                 "http://localhost:5173",
                                 "https://ezsplit-frontend-domain.vercel.app",
-                                "http://127.0.0.1:3000"
+                                "http://127.0.0.1:3000",
+                                "http://localhost:5174"
                         )
                         .allowedMethods("*")
                         .allowedHeaders("*")

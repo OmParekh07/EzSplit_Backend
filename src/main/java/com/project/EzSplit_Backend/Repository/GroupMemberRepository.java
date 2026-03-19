@@ -19,4 +19,5 @@ public interface GroupMemberRepository
 
     int countByGroup(Group group);
 
+    void deleteByGroup(Group group);
 }

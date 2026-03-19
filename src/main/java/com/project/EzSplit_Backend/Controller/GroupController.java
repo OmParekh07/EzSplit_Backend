@@ -71,7 +71,11 @@
             return expenseService.getGroupExpenses(groupId);
         }
 
-
+        @DeleteMapping("/{groupId}")
+        public String deleteGroup(@PathVariable Long groupId, Authentication authentication) {
+            User user = (User) authentication.getPrincipal();
+            return groupService.deleteGroup(groupId, user.getId());
+        }
 
 
 

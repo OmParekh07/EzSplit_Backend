@@ -32,4 +32,6 @@ ORDER BY e.created_at DESC
 LIMIT 5
 """, nativeQuery = true)
     List<Expense> findRecentExpenses(Long userId);
+
+    void deleteByGroup(Group group);
 }
